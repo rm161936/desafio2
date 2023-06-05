@@ -1,0 +1,83 @@
+﻿@model IEnumerable<CinePlus.Models.ContextModels.Pelicula>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
+@{
+    ViewData["Title"] = "Peliculas";
+}
+
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Encontrar por título o nombre de categoría: <input type="text" name="cadenaBusqueda" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Buscar" class="btn btn-default" /> |
+            <a asp-action="Index">Mostrar todas las películas</a>
+        </p>
+    </div>
+</form>
+
+<div class="pelicula-container">
+
+    @foreach (var item in Model) {
+
+        <div class="pelicula-box">
+            <div class="imagen">
+                @if (item.PosterImg != null)
+                {
+                    string imagenDataUrl = $"data:image/jpg;base64,{Convert.ToBase64String(item.PosterImg)}";
+                    <img src="@imagenDataUrl" alt="Imagen" />
+                }
+            </div>
+            <div class="informacion">
+                <h2>@Html.DisplayFor(modelItem => item.Titulo)</h2>
+                <p>Sinopsis: <span class="sinopsis">@Html.DisplayFor(modelItem => item.Sinopsis)</span></p>
+                <p>Directores: <span class="directores">@Html.DisplayFor(modelItem => item.Director)</span></p>
+                <p>Género: <span class="genero">@Html.DisplayFor(modelItem => item.Genero.Nombre)</span></p>
+
+                <div class="ranking">
+                    <p class="puntuar-text">
+                        Puntuar:
+                    </p>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-id="@Html.DisplayFor(modelItem => item.Id)" data-rating="@i">&#9733;</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    <div class="paginationBtns">
+        @Html.PagedListPager((IPagedList)Model,page => Url.Action("Index","Pelicula", new { page = page}))
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('.star').click(function () {
+                var rating = $(this).data('rating');
+                var id = $(this).data('id');
+
+                $.ajax({
+                    url: '/Pelicula/AddRanking', 
+                    type: 'POST',
+                    data: { id: id, rating: rating },
+                    success: function (data) {
+                        if(data == 1){
+                            $.notify("Su puntuación fue almacenada con éxito", "success");
+                        }else{
+                            $.notify("Ocurrió un error al almacenar la puntuación.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $.notify("Ocurrió un error al almacenar la puntuación.", "error");
+                    }
+                });
+
+                $(this).addClass('active');
+                $(this).prevAll('.star').addClass('active');
+                $(this).nextAll('.star').removeClass('active');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<CinePlus.Models.ViewModels.PuntuacionViewModel>
+
+@section Headers{
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart', 'bar'] });
+        google.charts.setOnLoadCallback(drawBasic);
+
+        function drawBasic() {
+
+            var peliculaModel = @Html.Raw(Json.Serialize(Model));
+
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Nombre de la Película');
+            data.addColumn('number', 'Promedio');
+
+            var rows = [];
+            peliculaModel.forEach(function (pelicula) {
+                var row = [pelicula.nombrePelicula, pelicula.promedio];
+                rows.push(row);
+            });
+
+            data.addRows(rows);
+
+            var options = {
+                title: 'Top 5 películas.',
+                hAxis: {
+                    title: 'Nombre de la Película',
+                },
+                vAxis: {
+                    title: 'Puntuación (escala del 1.0-5.0)'
+                }
+            };
+
+            var chart = new google.visualization.ColumnChart(
+                document.getElementById('chart_div'));
+
+            chart.draw(data, options);
+        }
+    </script>
+
+}
+
+<div id="chart_div" class="centered-div" style="width: 800px; height: 600px;"></div>
